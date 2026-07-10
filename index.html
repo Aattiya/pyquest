@@ -167,10 +167,10 @@ else:
    hint:"if order_amount >= 200: ... elif order_amount >= 100: ... else: ...",
    tests:`assert tier == "medium", f"145 should be medium, got {tier}"`},
   {title:"Weekly revenue total",
-   lesson:`<h3>for loops</h3><pre>daily = [5200, 4800, 6100]
+   lesson:`<h3>for loops — reading the sentence</h3>A for loop reads almost like English: <code>for day in daily:</code> means "for each item in the list <code>daily</code>, one at a time, call it <code>day</code>, and do the following." Python automatically walks through the list — you never manage an index yourself.<pre>daily = [5200, 4800, 6100]
 total = 0
 for day in daily:
-    total += day</pre><h3>range()</h3><pre>for i in range(5):      # 0,1,2,3,4
+    total += day</pre>What actually happens, step by step: on the 1st pass, <code>day</code> becomes <code>5200</code>. On the 2nd pass, <code>day</code> becomes <code>4800</code>. On the 3rd, <code>day</code> becomes <code>6100</code>. Each time, the indented line(s) below run again with the new value.<h3>What += actually does</h3><code>total += day</code> is shorthand for <code>total = total + day</code> — "take whatever total already is, add day to it, and save that back into total." It's how you build up a running sum across a loop, since a plain <code>total = day</code> would overwrite instead of accumulate.<h3>range()</h3>Sometimes you don't have a list yet — you just want to repeat something N times, or need a counting number. <code>range(5)</code> generates 0,1,2,3,4 for you to loop over:<pre>for i in range(5):      # 0,1,2,3,4
     print(i)</pre>`,
    task:`Given the list <b>daily = [5200, 4800, 6100, 7300, 8900, 9400, 7050]</b>, use a for loop to compute <b>total</b> and count how many days made over 7000 as <b>strong_days</b>.`,
    starter:`daily = [5200, 4800, 6100, 7300, 8900, 9400, 7050]\ntotal = 0\nstrong_days = 0\n`,
@@ -729,7 +729,25 @@ function highlightPython(code){
   return out;
 }
 
-let codeCache = {};
+function translateError(rawError){
+  const e = rawError || '';
+  const rules = [
+    { test: /NameError.*?'(\w+)'.*not defined/i, explain: (m) => `Python doesn't know what "${m[1]}" is yet. This usually means either a typo in a variable/function name, or you're using something before you've created it. Check spelling and make sure that line runs before this one.` },
+    { test: /IndentationError|unexpected indent|expected an indented block/i, explain: () => `Python cares about spacing. Every line inside a for/if/def/while block needs exactly 4 spaces (or a consistent amount) more than the line that opened it. Mixing tabs and spaces, or forgetting to indent the body, causes this.` },
+    { test: /SyntaxError.*?invalid syntax/i, explain: () => `Python couldn't parse this line — often a missing colon (:) at the end of an if/for/def/while line, a missing closing bracket/quote, or a stray character. Check the line just before where it points.` },
+    { test: /TypeError.*?unsupported operand/i, explain: () => `You're trying to combine two different types that don't mix directly — e.g. adding a number to text (str + int). Convert one first, like int(x) or str(x).` },
+    { test: /ZeroDivisionError/i, explain: () => `You divided by zero somewhere. Check if a variable you're dividing by could be 0, and handle that case (e.g. with try/except or an if check).` },
+    { test: /IndexError/i, explain: () => `You tried to access a position in a list that doesn't exist — e.g. asking for the 5th item in a 3-item list. Remember indexing starts at 0.` },
+    { test: /KeyError.*?'(\w+)'/i, explain: (m) => `The dictionary doesn't have a key called "${m[1]}". Double check the exact spelling/case of the key you're looking up.` },
+    { test: /Test failed: (.*)/i, explain: (m) => `Your code ran without crashing, but the result wasn't quite right: ${m[1]}. Compare what you expected vs. what your code actually produced — try adding a print() to see the value.` },
+  ];
+  for(const rule of rules){
+    const m = e.match(rule.test);
+    if(m) return rule.explain(m);
+  }
+  return null;
+}
+
 function getCode(key, starter){ return codeCache[key] !== undefined ? codeCache[key] : starter; }
 function setConsole(html){ consoleOut = html; const el=document.getElementById('console'); if(el) el.innerHTML = html; }
 function flash(msg){ setConsole(`<span class="sys">${escapeHtml(msg)}</span>`); }
