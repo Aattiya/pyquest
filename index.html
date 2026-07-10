@@ -556,7 +556,8 @@ function render(){
       <div class="progress-pills">${lvl.challenges.map((_,i)=>`<div class="pill ${state.done[`${li}-${i}`]?'done':(i===ci?'current':'')}"></div>`).join('')}</div>
       <div class="card lesson">${ch.lesson}<div class="task">🎯 <b>Your task:</b> ${ch.task}</div></div>
       <div class="card">
-        <textarea id="editor" spellcheck="false">${escapeHtml(getCode(key, ch.starter))}</textarea>
+        <textarea id="editor" spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off">${escapeHtml(getCode(key, ch.starter))}</textarea>
+        <div id="funcIndicator" style="min-height:20px;margin-top:6px;font-family:var(--mono);font-size:12px;color:var(--dim)"></div>
         <div class="btnrow">
           <button class="run" id="runBtn">▶ Run code</button>
           <button class="submit" id="submitBtn">Submit &amp; check ✓</button>
@@ -579,7 +580,8 @@ function render(){
   });
   const menuBtn = document.getElementById('menuBtn');
   if(menuBtn) menuBtn.onclick = ()=>document.getElementById('sidebar').classList.toggle('open');
-  document.getElementById('editor').addEventListener('input', e=>{ codeCache[key]=e.target.value; });
+  document.getElementById('editor').addEventListener('input', e=>{ codeCache[key]=e.target.value; updateFuncIndicator(e.target.value); });
+  updateFuncIndicator(document.getElementById('editor').value);
   document.getElementById('editor').addEventListener('keydown', e=>{
     if(e.key==='Tab'){ e.preventDefault(); const t=e.target; const s=t.selectionStart;
       t.value = t.value.slice(0,s)+'    '+t.value.slice(t.selectionEnd);
@@ -631,6 +633,41 @@ function getCode(key, starter){ return codeCache[key] !== undefined ? codeCache[
 function setConsole(html){ consoleOut = html; const el=document.getElementById('console'); if(el) el.innerHTML = html; }
 function flash(msg){ setConsole(`<span class="sys">${escapeHtml(msg)}</span>`); }
 function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function updateFuncIndicator(code){
+  const el = document.getElementById('funcIndicator');
+  if(!el) return;
+  const lines = code.split('\n');
+  const defs = [];
+  for(let i=0;i<lines.length;i++){
+    const m = lines[i].match(/^(\s*)def\s+([A-Za-z_]\w*)\s*\(([^)]*)\)\s*:\s*$/);
+    if(!m) continue;
+    const indent = m[1].length;
+    const name = m[2];
+    const params = m[3].trim();
+    // scan the body (more-indented lines) for a return statement
+    let hasReturn = false, bodyLines = 0;
+    for(let j=i+1;j<lines.length;j++){
+      const line = lines[j];
+      if(line.trim()==='') continue;
+      const lineIndent = line.match(/^\s*/)[0].length;
+      if(lineIndent <= indent) break;
+      bodyLines++;
+      if(/^\s*return\b/.test(line)) hasReturn = true;
+    }
+    defs.push({name, params, hasReturn, bodyLines});
+  }
+  if(defs.length===0){ el.innerHTML = ''; return; }
+  el.innerHTML = defs.map(d=>{
+    const paramLabel = d.params ? d.params : '(no params)';
+    const status = d.bodyLines===0
+      ? `<span style="color:var(--dim)">— empty body</span>`
+      : d.hasReturn
+        ? `<span style="color:var(--green)">✓ returns a value</span>`
+        : `<span style="color:var(--amber)">△ no return (ok if it only prints)</span>`;
+    return `<span style="color:var(--blue)">ƒ ${escapeHtml(d.name)}(${escapeHtml(paramLabel)})</span> ${status}`;
+  }).join('<br>');
+}
 
 /* ============ BOOT ============ */
 (async ()=>{
