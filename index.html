@@ -68,6 +68,16 @@ Sk.builtinFiles={files:{"src/builtin/this.py":'s = """Gur Mra bs Clguba, ol Gvz 
   .task b{color:var(--amber)}
 
   textarea{width:100%;min-height:220px;background:var(--ink);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:14px;font-family:var(--mono);font-size:14px;line-height:1.55;resize:vertical;tab-size:4}
+  .editor-wrap{position:relative;width:100%;min-height:220px}
+  .editor-wrap textarea{position:relative;background:transparent;color:transparent;caret-color:var(--text);z-index:2;resize:vertical}
+  .highlight-layer{position:absolute;top:0;left:0;width:100%;height:100%;padding:14px;font-family:var(--mono);font-size:14px;line-height:1.55;white-space:pre-wrap;word-wrap:break-word;color:var(--text);pointer-events:none;overflow:hidden;box-sizing:border-box;z-index:1;background:var(--ink);border:1px solid var(--line);border-radius:10px;tab-size:4}
+  .tok-kw{color:var(--purple);font-weight:600}
+  .tok-str{color:var(--green)}
+  .tok-num{color:var(--amber)}
+  .tok-com{color:var(--dim);font-style:italic}
+  .tok-def{color:var(--blue);font-weight:600}
+  .tok-builtin{color:#82d4ff}
+  .tok-self{color:var(--red)}
   textarea:focus{outline:2px solid var(--amber);outline-offset:-1px}
   .btnrow{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
   button{font-family:inherit;font-size:14px;font-weight:600;padding:10px 20px;border-radius:8px;border:none;cursor:pointer;transition:transform .1s}
@@ -556,7 +566,10 @@ function render(){
       <div class="progress-pills">${lvl.challenges.map((_,i)=>`<div class="pill ${state.done[`${li}-${i}`]?'done':(i===ci?'current':'')}"></div>`).join('')}</div>
       <div class="card lesson">${ch.lesson}<div class="task">🎯 <b>Your task:</b> ${ch.task}</div></div>
       <div class="card">
-        <textarea id="editor" spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off">${escapeHtml(getCode(key, ch.starter))}</textarea>
+        <div class="editor-wrap">
+          <div class="highlight-layer" id="highlightLayer"></div>
+          <textarea id="editor" spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off">${escapeHtml(getCode(key, ch.starter))}</textarea>
+        </div>
         <div id="funcIndicator" style="min-height:20px;margin-top:6px;font-family:var(--mono);font-size:12px;color:var(--dim)"></div>
         <div class="btnrow">
           <button class="run" id="runBtn">▶ Run code</button>
@@ -580,8 +593,13 @@ function render(){
   });
   const menuBtn = document.getElementById('menuBtn');
   if(menuBtn) menuBtn.onclick = ()=>document.getElementById('sidebar').classList.toggle('open');
-  document.getElementById('editor').addEventListener('input', e=>{ codeCache[key]=e.target.value; updateFuncIndicator(e.target.value); });
+  document.getElementById('editor').addEventListener('input', e=>{ codeCache[key]=e.target.value; updateFuncIndicator(e.target.value); paintHighlight(e.target.value); });
+  document.getElementById('editor').addEventListener('scroll', e=>{
+    const hl = document.getElementById('highlightLayer');
+    if(hl){ hl.scrollTop = e.target.scrollTop; hl.scrollLeft = e.target.scrollLeft; }
+  });
   updateFuncIndicator(document.getElementById('editor').value);
+  paintHighlight(document.getElementById('editor').value);
   document.getElementById('editor').addEventListener('keydown', e=>{
     if(e.key==='Tab'){ e.preventDefault(); const t=e.target; const s=t.selectionStart;
       t.value = t.value.slice(0,s)+'    '+t.value.slice(t.selectionEnd);
@@ -626,6 +644,89 @@ function render(){
   document.getElementById('resetBtn').onclick = async ()=>{
     if(confirm('Reset all progress and XP?')){ state={level:0,challenge:0,xp:0,done:{},hintsUsed:{}}; codeCache={}; consoleOut=""; await saveState(); render(); }
   };
+}
+
+function paintHighlight(code){
+  const layer = document.getElementById('highlightLayer');
+  if(!layer) return;
+  layer.innerHTML = highlightPython(code) + '\n'; // trailing newline keeps scroll height matching textarea
+}
+
+const PY_KEYWORDS = new Set(['False','None','True','and','as','assert','async','await','break','class','continue','def','del','elif','else','except','finally','for','from','global','if','import','in','is','lambda','nonlocal','not','or','pass','raise','return','try','while','with','yield']);
+const PY_BUILTINS = new Set(['print','len','range','int','float','str','list','dict','set','tuple','sum','max','min','sorted','abs','round','enumerate','zip','map','filter','open','type','isinstance','super','next','iter','bool','input']);
+
+function highlightPython(code){
+  // Tokenize character by character, respecting strings/comments, then wrap tokens in spans.
+  let out = '';
+  let i = 0;
+  const n = code.length;
+  while(i < n){
+    const ch = code[i];
+
+    // comments
+    if(ch === '#'){
+      let j = i;
+      while(j < n && code[j] !== '\n') j++;
+      out += `<span class="tok-com">${escapeHtml(code.slice(i,j))}</span>`;
+      i = j;
+      continue;
+    }
+
+    // strings (single, double, triple - simplistic but handles f-strings/prefixes too)
+    if(ch === '"' || ch === "'"){
+      const quote = ch;
+      const triple = code.slice(i, i+3) === quote.repeat(3);
+      const qlen = triple ? 3 : 1;
+      let j = i + qlen;
+      while(j < n){
+        if(code[j] === '\\'){ j += 2; continue; }
+        if(code.slice(j, j+qlen) === quote.repeat(qlen)){ j += qlen; break; }
+        if(!triple && code[j] === '\n'){ break; }
+        j++;
+      }
+      out += `<span class="tok-str">${escapeHtml(code.slice(i,j))}</span>`;
+      i = j;
+      continue;
+    }
+
+    // numbers
+    if(/[0-9]/.test(ch)){
+      let j = i;
+      while(j < n && /[0-9.]/.test(code[j])) j++;
+      out += `<span class="tok-num">${escapeHtml(code.slice(i,j))}</span>`;
+      i = j;
+      continue;
+    }
+
+    // identifiers / keywords
+    if(/[A-Za-z_]/.test(ch)){
+      let j = i;
+      while(j < n && /[A-Za-z0-9_]/.test(code[j])) j++;
+      const word = code.slice(i,j);
+      // check if this identifier is immediately followed by '(' -> function-ish call/def name
+      let k = j; while(k < n && code[k] === ' ') k++;
+      const followedByParen = code[k] === '(';
+      const prevWord = out.match(/([A-Za-z_]\w*)\s*$/); // rough lookback, best-effort only
+      if(PY_KEYWORDS.has(word)){
+        out += `<span class="tok-kw">${escapeHtml(word)}</span>`;
+      } else if(word === 'self' || word === 'cls'){
+        out += `<span class="tok-self">${escapeHtml(word)}</span>`;
+      } else if(PY_BUILTINS.has(word) && followedByParen){
+        out += `<span class="tok-builtin">${escapeHtml(word)}</span>`;
+      } else if(followedByParen){
+        out += `<span class="tok-def">${escapeHtml(word)}</span>`;
+      } else {
+        out += escapeHtml(word);
+      }
+      i = j;
+      continue;
+    }
+
+    // everything else (whitespace, punctuation, operators)
+    out += escapeHtml(ch);
+    i++;
+  }
+  return out;
 }
 
 let codeCache = {};
