@@ -69,8 +69,10 @@ Sk.builtinFiles={files:{"src/builtin/this.py":'s = """Gur Mra bs Clguba, ol Gvz 
 
   textarea{width:100%;min-height:220px;background:var(--ink);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:14px;font-family:var(--mono);font-size:14px;line-height:1.55;resize:vertical;tab-size:4}
   .editor-wrap{position:relative;width:100%;min-height:220px}
-  .editor-wrap textarea{position:relative;background:transparent;color:transparent;caret-color:var(--text);z-index:2;resize:vertical}
-  .highlight-layer{position:absolute;top:0;left:0;width:100%;height:100%;padding:14px;font-family:var(--mono);font-size:14px;line-height:1.55;white-space:pre-wrap;word-wrap:break-word;color:var(--text);pointer-events:none;overflow:hidden;box-sizing:border-box;z-index:1;background:var(--ink);border:1px solid var(--line);border-radius:10px;tab-size:4}
+  .editor-wrap textarea, .highlight-layer{margin:0;box-sizing:border-box;font-family:var(--mono);font-size:16px;line-height:1.5;letter-spacing:normal;white-space:pre-wrap;word-wrap:break-word;tab-size:4;padding:14px 14px 14px 52px;border:1px solid var(--line);border-radius:10px}
+  .editor-wrap textarea{position:relative;background:transparent;color:transparent;caret-color:var(--amber);z-index:2;resize:vertical;width:100%;min-height:220px;-webkit-text-size-adjust:100%}
+  .highlight-layer{position:absolute;top:0;left:0;width:100%;height:100%;color:var(--text);pointer-events:none;overflow:hidden;z-index:1;background:var(--ink)}
+  .gutter{position:absolute;top:0;left:0;width:40px;height:100%;padding:14px 6px 14px 0;box-sizing:border-box;font-family:var(--mono);font-size:16px;line-height:1.5;color:var(--dim);text-align:right;pointer-events:none;overflow:hidden;z-index:1;user-select:none;border-right:1px solid var(--line)}
   .tok-kw{color:var(--purple);font-weight:600}
   .tok-str{color:var(--green)}
   .tok-num{color:var(--amber)}
@@ -608,6 +610,7 @@ function render(){
       <div class="card">
         <div class="editor-wrap">
           <div class="highlight-layer" id="highlightLayer"></div>
+          <div class="gutter" id="gutter"></div>
           <textarea id="editor" spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off">${escapeHtml(getCode(key, ch.starter))}</textarea>
         </div>
         <div id="funcIndicator" style="min-height:20px;margin-top:6px;font-family:var(--mono);font-size:12px;color:var(--dim)"></div>
@@ -637,13 +640,39 @@ function render(){
   document.getElementById('editor').addEventListener('scroll', e=>{
     const hl = document.getElementById('highlightLayer');
     if(hl){ hl.scrollTop = e.target.scrollTop; hl.scrollLeft = e.target.scrollLeft; }
+    const g = document.getElementById('gutter');
+    if(g){ g.scrollTop = e.target.scrollTop; }
   });
   updateFuncIndicator(document.getElementById('editor').value);
   paintHighlight(document.getElementById('editor').value);
   document.getElementById('editor').addEventListener('keydown', e=>{
-    if(e.key==='Tab'){ e.preventDefault(); const t=e.target; const s=t.selectionStart;
+    const t = e.target;
+    if(e.key==='Tab'){
+      e.preventDefault();
+      const s = t.selectionStart;
       t.value = t.value.slice(0,s)+'    '+t.value.slice(t.selectionEnd);
-      t.selectionStart=t.selectionEnd=s+4; codeCache[key]=t.value; }
+      t.selectionStart = t.selectionEnd = s+4;
+      codeCache[key] = t.value;
+      paintHighlight(t.value);
+    }
+    if(e.key==='Enter'){
+      e.preventDefault();
+      const s = t.selectionStart;
+      // find the current line to copy its indentation
+      const before = t.value.slice(0, s);
+      const lineStart = before.lastIndexOf('\n') + 1;
+      const currentLine = before.slice(lineStart);
+      const indentMatch = currentLine.match(/^\s*/);
+      let indent = indentMatch ? indentMatch[0] : '';
+      // if the line ends with ':' (def/if/for/while/class...), indent one level deeper
+      if(currentLine.trimEnd().endsWith(':')) indent += '    ';
+      const insert = '\n' + indent;
+      t.value = t.value.slice(0,s) + insert + t.value.slice(t.selectionEnd);
+      t.selectionStart = t.selectionEnd = s + insert.length;
+      codeCache[key] = t.value;
+      paintHighlight(t.value);
+      updateFuncIndicator(t.value);
+    }
   });
   document.getElementById('runBtn').onclick = async ()=>{
     const code = document.getElementById('editor').value;
@@ -715,6 +744,13 @@ function paintHighlight(code){
   const layer = document.getElementById('highlightLayer');
   if(!layer) return;
   layer.innerHTML = highlightPython(code) + '\n'; // trailing newline keeps scroll height matching textarea
+  const gutter = document.getElementById('gutter');
+  if(gutter){
+    const count = code.split('\n').length;
+    let nums = '';
+    for(let i=1;i<=count;i++) nums += i + '\n';
+    gutter.textContent = nums;
+  }
 }
 
 const PY_KEYWORDS = new Set(['False','None','True','and','as','assert','async','await','break','class','continue','def','del','elif','else','except','finally','for','from','global','if','import','in','is','lambda','nonlocal','not','or','pass','raise','return','try','while','with','yield']);
