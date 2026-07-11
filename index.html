@@ -122,10 +122,10 @@ const LEVELS = [
  desc:"Variables, types, printing, f-strings",
  challenges:[
   {title:"Your first revenue report",
-   lesson:`<h3>Welcome to QMart 📦</h3>You've just joined <b>QMart</b>, a food-delivery startup, as a data intern. Over 8 levels you'll build their analytics engine — and become a Python expert.<h3>Variables & print</h3>Variables store data. Python figures out the type automatically.<pre>orders = 1250          # int
-revenue = 48750.5      # float
-city = "Doha"          # string
-print(city, revenue)</pre><h3>f-strings</h3>The modern way to format text:<pre>print(f"{city} made QAR {revenue}")</pre>`,
+   lesson:`<h3>Welcome to QMart 📦</h3>You've just joined <b>QMart</b>, a food-delivery startup, as a data intern. Over 8 levels you'll build their analytics engine — and become a Python expert.<h3>Variables — named boxes for values</h3>A variable is just a name pointing at a value. The <code>=</code> sign means "store this", not "equals" like in math. Python figures out the type from what you give it:<pre>orders = 1250          # whole number -> int
+revenue = 48750.5      # decimal -> float
+city = "Doha"          # text in quotes -> string</pre>Read <code>orders = 1250</code> as: "create a box called orders, put 1250 inside." Later, writing <code>orders</code> anywhere pulls that value back out.<h3>print() — showing values on screen</h3><code>print(city)</code> displays what's inside the box. You can print several things: <code>print(city, revenue)</code>.<h3>f-strings — mixing text and variables</h3>Put an <code>f</code> before the quote, and anything in <code>{curly braces}</code> gets swapped for its value:<pre>print(f"{city} made QAR {revenue}")
+# shows: Doha made QAR 48750.5</pre>Without the <code>f</code>, Python prints the braces literally — that's the #1 beginner mistake here.`,
    task:`Create a variable <b>revenue</b> = 48750.5 and <b>orders</b> = 1250. Then print exactly: <code>QMart revenue: 48750.5 from 1250 orders</code> using an f-string.`,
    starter:`# Your first day at QMart!\n`,
    hint:"print(f\"QMart revenue: {revenue} from {orders} orders\")",
@@ -133,17 +133,22 @@ print(city, revenue)</pre><h3>f-strings</h3>The modern way to format text:<pre>p
 assert orders == 1250, "orders should be 1250"
 assert "QMart revenue: 48750.5 from 1250 orders" in _stdout, "Check your printed text exactly"`},
   {title:"Average order value",
-   lesson:`<h3>Math operators</h3><pre>+  -  *  /     # / always gives a float
-//             # floor division: 7 // 2 = 3
-%              # remainder:      7 % 2 = 1
-**             # power:          2 ** 10 = 1024
-round(x, 2)    # round to 2 decimals</pre>AOV (average order value) is one of the most important metrics in commerce: <code>revenue / orders</code>.`,
+   lesson:`<h3>Math in Python</h3>The basic operators work like a calculator:<pre>+   add          10 + 3   # 13
+-   subtract     10 - 3   # 7
+*   multiply     10 * 3   # 30
+/   divide       10 / 3   # 3.333... (always a float!)</pre>And some Python-specific ones you'll use constantly:<pre>//  floor divide  7 // 2   # 3  (drops the decimal)
+%   remainder     7 % 2    # 1  (what's left over)
+**  power         2 ** 10  # 1024</pre><h3>round() — cleaning up decimals</h3><code>round(number, digits)</code> trims a long decimal: <code>round(3.14159, 2)</code> gives <code>3.14</code>. You'll use this on almost every money calculation.<h3>Putting it together</h3>AOV (average order value) is revenue ÷ orders — one of the most-watched metrics in commerce:<pre>aov = revenue / orders          # raw: 39.0004
+aov = round(revenue / orders, 2) # clean: 39.0</pre>Notice you can nest: the division happens first, then round() wraps it. Common mistake: writing <code>round(revenue) / orders</code> — that rounds the wrong thing. Parentheses placement matters.`,
    task:`Using <b>revenue = 48750.5</b> and <b>orders = 1250</b>, compute <b>aov</b> = revenue divided by orders, rounded to 2 decimals. Print it.`,
    starter:`revenue = 48750.5\norders = 1250\n# compute aov\n`,
    hint:"aov = round(revenue / orders, 2)",
    tests:`assert abs(aov - 39.0) < 0.01, f"aov should be 39.0, got {aov}"`},
   {title:"Growth rate",
-   lesson:`<h3>User input → we simulate it with variables</h3>Growth rate formula: <code>(new - old) / old * 100</code>. This is asked in literally every business analyst interview.`,
+   lesson:`<h3>The growth formula, step by step</h3>"How much did we grow?" is always: <b>(new − old) ÷ old × 100</b>. Why divide by <i>old</i>? Because growth is measured relative to where you started. Going 42000 → 48750.5:<pre>difference = this_month - last_month   # 6750.5
+fraction   = difference / last_month   # 0.1607... (16% as a decimal)
+percent    = fraction * 100            # 16.07...
+clean      = round(percent, 1)         # 16.1</pre>You can collapse all four lines into one — Python evaluates inside-out, parentheses first:<pre>growth = round((this_month - last_month) / last_month * 100, 1)</pre><h3>Putting % in an f-string</h3>The <code>%</code> symbol is just a normal character inside text:<pre>print(f"Growth: {growth}%")   # Growth: 16.1%</pre>Common mistake: forgetting the parentheses around <code>(this_month - last_month)</code>. Without them, division happens before subtraction and you get a nonsense number. When in doubt, add parentheses around the step that must happen first.`,
    task:`Given <b>last_month = 42000</b> and <b>this_month = 48750.5</b>, compute <b>growth</b> as a percentage rounded to 1 decimal, and print <code>Growth: 16.1%</code> using an f-string.`,
    starter:`last_month = 42000\nthis_month = 48750.5\n`,
    hint:"growth = round((this_month - last_month) / last_month * 100, 1) → then f\"Growth: {growth}%\"",
@@ -156,12 +161,12 @@ assert "Growth: 16.1%" in _stdout, "print 'Growth: 16.1%'"`}
  desc:"if/else, for, while, ranges",
  challenges:[
   {title:"Order size classifier",
-   lesson:`<h3>Conditionals</h3><pre>if amount >= 200:
+   lesson:`<h3>if / elif / else — decisions in code</h3>This is how code chooses between paths. Read it top to bottom: Python checks each condition in order and runs the <b>first</b> one that's true, skipping the rest:<pre>if amount >= 200:
     tier = "large"
-elif amount >= 100:
+elif amount >= 100:      # "else if" — only checked if the first was False
     tier = "medium"
-else:
-    tier = "small"</pre>Indentation (4 spaces) IS the syntax in Python — no braces.`,
+else:                     # catches everything that didn't match above
+    tier = "small"</pre>Three syntax rules that trip everyone up:<br>1. Each condition line <b>ends with a colon</b> <code>:</code><br>2. The lines that run when it's true are <b>indented 4 spaces</b><br>3. Comparison uses <code>>=</code>, <code>&lt;=</code>, <code>==</code> (double equals!) — a single <code>=</code> means "store", double means "compare"<h3>Why order matters</h3>With amount = 250, both <code>>= 200</code> and <code>>= 100</code> are technically true — but Python takes the first match and stops. So always put the strictest condition first. If you checked <code>>= 100</code> first, a 250 order would wrongly be "medium".`,
    task:`Write a variable <b>order_amount = 145</b>, then set <b>tier</b> to <code>"large"</code> if ≥ 200, <code>"medium"</code> if ≥ 100, else <code>"small"</code>. Print the tier.`,
    starter:`order_amount = 145\n`,
    hint:"if order_amount >= 200: ... elif order_amount >= 100: ... else: ...",
@@ -178,9 +183,9 @@ for day in daily:
    tests:`assert total == 48750, f"total should be 48750, got {total}"
 assert strong_days == 4, f"strong_days should be 4, got {strong_days}"`},
   {title:"Break-even simulator",
-   lesson:`<h3>while loops</h3>Run until a condition is met — perfect for "how long until we break even?"<pre>while cash < target:
-    cash += monthly_profit
-    months += 1</pre>`,
+   lesson:`<h3>while loops — repeat until a condition breaks</h3>A <code>for</code> loop runs once per item in a list. A <code>while</code> loop is different: it keeps repeating <b>as long as its condition stays true</b> — perfect when you don't know in advance how many rounds you need:<pre>while earned < investment:
+    earned += monthly      # add a month of profit
+    months += 1            # count that month</pre>Read it as: "while we haven't earned back the investment yet: earn another month, count it." Each cycle, Python re-checks <code>earned < investment</code>. The moment it's false, the loop stops and the code continues below.<h3>Walking through it</h3>Say investment=10, monthly=4: pass 1 → earned=4, months=1. Pass 2 → earned=8, months=2. Pass 3 → earned=12, months=3. Now 12 < 10 is false → stop. Answer: 3 months.<h3>⚠️ The infinite loop</h3>If you forget the line that changes <code>earned</code>, the condition never becomes false and the loop runs forever (the game will cut it off with a time-limit error). Every while loop needs something inside it that moves toward the exit.`,
    task:`QMart invested <b>50000</b>. It earns <b>4200</b>/month profit. Using a while loop, compute <b>months</b> = how many months until cumulative profit ≥ 50000. Start with <code>earned = 0</code> and <code>months = 0</code>.`,
    starter:`investment = 50000\nmonthly = 4200\nearned = 0\nmonths = 0\n`,
    hint:"while earned < investment: earned += monthly; months += 1",
@@ -192,29 +197,32 @@ assert strong_days == 4, f"strong_days should be 4, got {strong_days}"`},
  desc:"Lists, dicts, tuples, sets, comprehensions",
  challenges:[
   {title:"Top seller lookup",
-   lesson:`<h3>Dictionaries — key → value</h3>The workhorse of business data:<pre>sales = {"Burger Hub": 12400, "Pasta Bar": 8900}
-sales["Burger Hub"]        # 12400
-sales["Sushi Go"] = 5100   # add
-for name, rev in sales.items():
-    print(name, rev)</pre><pre>max(sales, key=sales.get)  # key with highest value</pre>`,
+   lesson:`<h3>Dictionaries — labeled storage</h3>A list stores items by <i>position</i> (0, 1, 2...). A dictionary stores them by <i>name</i> (a "key"). It's written with curly braces, and each entry is <code>key: value</code>:<pre>sales = {"Burger Hub": 12400, "Pasta Bar": 8900}
+sales["Burger Hub"]         # look up by key -> 12400
+sales["Sushi Go"] = 5100    # add a new entry
+sales["Pasta Bar"] = 9000   # overwrite an existing one</pre>Think of it as a phone book: you look people up by name, not by what row they're on.<h3>Useful dict tools</h3><pre>sales.values()   # just the numbers: [12400, 8900, ...]
+sales.keys()     # just the names
+sum(sales.values())          # total of all values
+max(sales, key=sales.get)    # the KEY with the biggest value</pre>That last one deserves a closer look: plain <code>max(sales)</code> compares the <i>names alphabetically</i> (useless here). Adding <code>key=sales.get</code> tells max: "judge each name by its sales number instead." You'll use this exact pattern constantly in analytics.`,
    task:`Given the <b>sales</b> dict, find <b>top_restaurant</b> (name with highest revenue) and <b>total_sales</b> (sum of all values — use <code>sum(sales.values())</code>).`,
    starter:`sales = {"Burger Hub": 12400, "Pasta Bar": 8900, "Sushi Go": 15100, "Shawarma King": 11300}\n`,
    hint:"top_restaurant = max(sales, key=sales.get); total_sales = sum(sales.values())",
    tests:`assert top_restaurant == "Sushi Go"
 assert total_sales == 47700`},
   {title:"List comprehensions",
-   lesson:`<h3>The most Pythonic feature</h3>Transform a list in one line:<pre>prices = [100, 250, 80]
-with_vat = [p * 1.05 for p in prices]
-big = [p for p in prices if p > 90]   # filter</pre>Interviewers LOVE these.`,
+   lesson:`<h3>The idea: transform a list in one line</h3>Very often you want "a new list, made by doing something to each item of an old list." The long way:<pre>discounted = []
+for v in order_values:
+    discounted.append(v * 0.9)</pre>The comprehension way — same result, one line:<pre>discounted = [v * 0.9 for v in order_values]</pre><h3>How to read it</h3>Read right to left: "<code>for v in order_values</code>" = walk the list calling each item <code>v</code> ... "<code>v * 0.9</code>" = and for each one, put THIS in the new list. The recipe is always: <code>[what_to_keep for item in source]</code>.<h3>Filtering with if</h3>Add a condition at the end to keep only some items:<pre>premium = [v for v in order_values if v > 150]</pre>"Keep <code>v</code> itself, for each v in the list, but only if v > 150." Note there's no transformation here — we keep the value as-is, we just skip the small ones.<h3>Combining both</h3><pre>big_discounted = [round(v*0.9, 1) for v in order_values if v > 150]</pre>Common mistake: writing the example's variable names instead of the ones the task asks for. The pattern is what transfers — the names must match your actual data.`,
    task:`Given <b>order_values</b>, create: <b>discounted</b> = every value × 0.9 (rounded to 1 decimal), and <b>premium</b> = only values above 150.`,
    starter:`order_values = [89, 210, 145, 320, 67, 178]\n`,
    hint:"discounted = [round(v * 0.9, 1) for v in order_values]; premium = [v for v in order_values if v > 150]",
    tests:`assert discounted == [80.1, 189.0, 130.5, 288.0, 60.3, 160.2], f"got {discounted}"
 assert premium == [210, 320, 178], f"got {premium}"`},
   {title:"Customer deduplication",
-   lesson:`<h3>Sets — unique items only</h3><pre>emails = ["a@x.com", "b@x.com", "a@x.com"]
-unique = set(emails)       # {"a@x.com", "b@x.com"}
-len(unique)                # 2</pre><h3>Sorting dicts</h3><pre>sorted(sales.items(), key=lambda x: x[1], reverse=True)</pre>`,
+   lesson:`<h3>Sets — a bag that ignores duplicates</h3>A set is like a list with one superpower: it automatically keeps only unique values. Wrap any list in <code>set()</code> and duplicates vanish:<pre>emails = ["a@x.com", "b@x.com", "a@x.com"]
+unique = set(emails)    # {"a@x.com", "b@x.com"}
+len(unique)             # 2  <- count of DISTINCT items</pre>So "how many unique customers?" is just: <code>len(set(customer_orders))</code>. Two functions wrapped together — set() dedupes, len() counts.<h3>The repeat-rate logic</h3>If 10 orders came from only 5 distinct customers, then half the orders were repeats. As a formula:<pre>repeat_rate = 1 - unique_customers / total_orders
+# 1 - 5/10 = 0.5</pre>Why does this work? <code>unique/total</code> is the fraction of orders that were "first-timers"; subtracting from 1 flips it to the fraction that were repeats. Then <code>round(..., 2)</code> cleans it up.<h3>len() works on everything</h3><code>len()</code> counts items in a list, characters in a string, entries in a dict, items in a set. You'll use it constantly.`,
    task:`Given <b>customer_orders</b> (list of customer IDs, one per order), compute <b>unique_customers</b> (int count of distinct IDs) and <b>repeat_rate</b> = round(1 - unique/total orders, 2).`,
    starter:`customer_orders = ["C1","C2","C1","C3","C2","C1","C4","C2","C5","C1"]\n`,
    hint:"unique_customers = len(set(customer_orders)); repeat_rate = round(1 - unique_customers/len(customer_orders), 2)",
@@ -227,11 +235,10 @@ assert repeat_rate == 0.5`}
  desc:"def, args, returns, lambdas, *args/**kwargs",
  challenges:[
   {title:"Reusable commission calculator",
-   lesson:`<h3>Functions</h3>Package logic once, reuse forever:<pre>def commission(revenue, rate=0.18):
-    return round(revenue * rate, 2)
-
-commission(1000)        # 180.0
-commission(1000, 0.25)  # 250.0</pre><code>rate=0.18</code> is a <b>default argument</b>.`,
+   lesson:`<h3>Functions — write once, use forever</h3>So far you've written code that runs top to bottom once. A function is a named, reusable block: define it once, call it as many times as you want with different inputs.<pre>def net_payout(revenue, commission_rate=0.18):
+    return round(revenue * (1 - commission_rate), 2)</pre>Breaking down each piece:<br>• <code>def</code> starts a function definition<br>• <code>net_payout</code> is the name you'll call it by<br>• <code>(revenue, commission_rate)</code> are <b>parameters</b> — placeholder names for whatever values the caller sends in<br>• <code>=0.18</code> makes that parameter <b>optional</b> with a default — callers can skip it<br>• <code>return</code> sends a value back out to whoever called<h3>Calling it</h3><pre>net_payout(1000)         # uses default rate -> 820.0
+net_payout(1000, 0.25)   # overrides rate    -> 750.0
+x = net_payout(500)      # store the returned value</pre><h3>return vs print — the classic confusion</h3><code>print()</code> just shows a value on screen; <code>return</code> actually hands the value back so it can be stored or reused. A function that prints but doesn't return gives you <code>None</code> when you try to use its result. Rule of thumb: calculations should <b>return</b>; only use print for display.`,
    task:`Write a function <b>net_payout(revenue, commission_rate=0.18)</b> that returns revenue minus commission, rounded to 2 decimals. Then compute <b>payout = net_payout(12400)</b>.`,
    starter:`# def net_payout(...):\n`,
    hint:"return round(revenue * (1 - commission_rate), 2)",
@@ -239,10 +246,12 @@ commission(1000, 0.25)  # 250.0</pre><code>rate=0.18</code> is a <b>default argu
 assert net_payout(1000, 0.25) == 750.0
 assert payout == 10168.0`},
   {title:"Tiered delivery fee engine",
-   lesson:`<h3>Functions with logic + multiple returns</h3>Real pricing engines are just functions with conditionals. You can return early:<pre>def fee(distance):
-    if distance <= 3: return 5
-    if distance <= 7: return 9
-    return 14</pre>`,
+   lesson:`<h3>Functions + decisions = pricing engines</h3>Real pricing logic is just a function with if/elif/else inside. New trick here: <b>early return</b>. The instant Python hits a <code>return</code>, the function exits — nothing below runs:<pre>def fee(distance):
+    if distance <= 3:
+        return 5      # if we're here, function is DONE
+    if distance <= 7:
+        return 9      # only reached if distance > 3
+    return 14         # only reached if distance > 7</pre>Notice we don't need elif — each return acts as an exit door, so a 2km delivery never even reaches the second check. Both styles (elif chains vs early returns) are correct; early returns often read cleaner.<h3>The one-line if</h3>Python has a compact conditional for simple either/or values:<pre>final = base / 2 if is_prime else base</pre>Read as: "final is base/2 <b>if</b> is_prime is true, <b>otherwise</b> just base." It's an expression, so you can return it directly: <code>return base / 2 if is_prime else base</code>.<h3>Boolean parameters</h3><code>is_prime=False</code> is a default just like a number would be — callers write <code>delivery_fee(5, is_prime=True)</code> to flip it. Naming the argument at the call site makes the code self-explanatory.`,
    task:`Write <b>delivery_fee(distance_km, is_prime=False)</b>: base fee is 5 if ≤3km, 9 if ≤7km, else 14. Prime members get 50% off (use <code>fee / 2</code>). Return the final fee.`,
    starter:``,
    hint:"Compute base with if/elif/else, then: return base / 2 if is_prime else base",
@@ -251,9 +260,8 @@ assert delivery_fee(5) == 9
 assert delivery_fee(10) == 14
 assert delivery_fee(5, is_prime=True) == 4.5`},
   {title:"Lambdas & sorting",
-   lesson:`<h3>Lambda = tiny anonymous function</h3><pre>orders = [("Ali", 210), ("Sara", 89)]
-orders.sort(key=lambda o: o[1], reverse=True)</pre><h3>map & filter</h3><pre>list(map(lambda x: x*2, [1,2,3]))     # [2,4,6]
-list(filter(lambda x: x>1, [1,2,3]))  # [2,3]</pre>`,
+   lesson:`<h3>Sorting complex data</h3><code>sorted()</code> can sort anything — but with tuples like <code>("Pasta Bar", 4.8, 8900)</code>, it needs to know: sort by WHICH part? That's what the <code>key</code> argument answers:<pre>ranked = sorted(restaurants, key=lambda r: r[1], reverse=True)</pre><h3>What's a lambda?</h3>A lambda is a tiny unnamed function written inline. <code>lambda r: r[1]</code> means "given an item r, hand back r[1]" — the same as:<pre>def get_rating(r):
+    return r[1]</pre>...just compressed to one line because it's too small to deserve a name. So the sorted() call reads: "sort the restaurants, judging each one by its element at position 1 (the rating), biggest first (<code>reverse=True</code>)."<h3>Indexing tuples</h3>Positions start at 0: in <code>("Pasta Bar", 4.8, 8900)</code>, <code>r[0]</code> is the name, <code>r[1]</code> the rating, <code>r[2]</code> the order count. And you can chain lookups: <code>ranked[0]</code> is the top tuple, so <code>ranked[0][0]</code> is the top restaurant's <i>name</i>. <code>ranked[-1]</code> is Python's neat trick for "last item".`,
    task:`Given <b>restaurants</b> (list of (name, rating, orders) tuples), create <b>ranked</b> = the list sorted by rating descending, and <b>best_name</b> = name of the top one.`,
    starter:`restaurants = [("Burger Hub", 4.2, 12400), ("Pasta Bar", 4.8, 8900), ("Sushi Go", 4.5, 15100)]\n`,
    hint:"ranked = sorted(restaurants, key=lambda r: r[1], reverse=True); best_name = ranked[0][0]",
@@ -267,11 +275,14 @@ assert best_name == "Pasta Bar"`}
  desc:"String methods, parsing, try/except, file I/O",
  challenges:[
   {title:"Parse messy CSV lines",
-   lesson:`<h3>String methods</h3><pre>line = "  Burger Hub ,12400 , doha "
-parts = line.split(",")
-name = parts[0].strip()        # remove spaces
-city = parts[2].strip().title() # "Doha"
-value = int(parts[1].strip())</pre>Real-world data is ALWAYS messy. Cleaning strings is 40% of a data job.`,
+   lesson:`<h3>Real data is filthy</h3>Exports from real systems arrive with stray spaces, wrong capitalization, and everything as text. Cleaning it is genuinely ~40% of a data job, and strings have built-in methods for it:<pre>"  doha  ".strip()      # "doha"       — cut spaces off both ends
+"doha".title()          # "Doha"       — Capitalize Each Word
+"DOHA".lower()          # "doha"
+"a,b,c".split(",")      # ["a", "b", "c"] — chop into a list</pre><h3>The universal parsing recipe</h3>Split first, then clean each piece, then convert types:<pre>raw = "  sushi go , 15100 , DOHA  "
+parts = raw.split(",")        # ["  sushi go ", " 15100 ", " DOHA  "]
+name = parts[0].strip().title()   # "Sushi Go"
+revenue = int(parts[1].strip())   # 15100 as a NUMBER
+city = parts[2].strip().title()   # "Doha"</pre>Two things to notice: methods <b>chain</b> left to right — <code>.strip().title()</code> strips first, then title-cases the result. And <code>int(" 15100 ")</code> would actually crash on the spaces in some cases — always strip before converting. That's why the order is strip → convert.`,
    task:`Parse the string <b>raw = "  sushi go , 15100 , DOHA  "</b> into: <b>name</b> (title case, stripped → "Sushi Go"), <b>revenue</b> (int 15100), <b>city</b> (title case → "Doha").`,
    starter:`raw = "  sushi go , 15100 , DOHA  "\n`,
    hint:'parts = raw.split(","), then .strip().title() for text and int(parts[1].strip()) for revenue',
@@ -279,24 +290,24 @@ value = int(parts[1].strip())</pre>Real-world data is ALWAYS messy. Cleaning str
 assert revenue == 15100
 assert city == "Doha"`},
   {title:"Bulletproof code with try/except",
-   lesson:`<h3>Errors happen — handle them</h3><pre>def safe_divide(a, b):
+   lesson:`<h3>Crashes are predictable — so catch them</h3>Some errors aren't bugs, they're facts of life: users enter garbage, files go missing, a divisor is zero. <code>try/except</code> lets you say "attempt this, and if THAT specific error happens, do this instead of crashing":<pre>def safe_aov(revenue, orders):
     try:
-        return a / b
+        return round(revenue / orders, 2)
     except ZeroDivisionError:
-        return 0</pre><pre>try:
-    value = int(text)
+        return 0</pre>Flow: Python runs the try block normally. If nothing goes wrong, except is skipped entirely. If a ZeroDivisionError occurs, Python jumps straight to the except block instead of crashing.<h3>Catching the RIGHT error</h3>Name the specific error you expect. Another common one:<pre>try:
+    value = int(text)        # crashes if text is "abc"
 except ValueError:
-    value = None</pre>Production code without error handling gets you paged at 3am.`,
+    value = None</pre>Avoid a bare <code>except:</code> with no error name — it silently swallows every problem including real bugs, which makes debugging miserable. Catch what you can predict, let real surprises crash loudly.<h3>Where you'll use this</h3>Any division (zero denominators), any type conversion (bad input), any file/network operation (missing/unreachable). Production code without this gets someone paged at 3am.`,
    task:`Write <b>safe_aov(revenue, orders)</b> that returns revenue/orders rounded to 2 decimals, but returns <code>0</code> if orders is 0 (catch <code>ZeroDivisionError</code>).`,
    starter:``,
    hint:"try: return round(revenue/orders, 2) / except ZeroDivisionError: return 0",
    tests:`assert safe_aov(1000, 25) == 40.0
 assert safe_aov(500, 0) == 0`},
   {title:"Process a sales feed",
-   lesson:`<h3>Reading structured text</h3>In the real world, data often arrives as raw text — a file, an API response, an export. The pattern is always the same: split into lines, skip the header, parse each row.<pre>raw = "name,revenue\\nBurger Hub,12400\\nPasta Bar,8900"
-lines = raw.splitlines()
-for line in lines[1:]:      # skip header
-    name, revenue = line.split(",")</pre>This is exactly what <code>open(file).readlines()</code> gives you in a real script — a list of lines to loop over.`,
+   lesson:`<h3>From raw text to structured data</h3>Data often arrives as one big multi-line string — a file's contents, an export, an API response. The universal pattern: split into lines, skip the header, parse each row into a structure you can compute on.<pre>raw = "name,revenue\nBurger Hub,12400\nPasta Bar,8900"</pre>That <code>\n</code> is the invisible "newline" character — where one line ends and the next begins.<pre>lines = raw.splitlines()
+# ["name,revenue", "Burger Hub,12400", "Pasta Bar,8900"]</pre><h3>Slicing to skip the header</h3><code>lines[1:]</code> means "from position 1 to the end" — everything except item 0 (the header). Slicing syntax is <code>list[start:end]</code>, and leaving out end means "to the end".<h3>Unpacking</h3>When a split gives exactly two parts, assign both at once:<pre>for line in lines[1:]:
+    name, revenue = line.split(",")   # two variables, one line
+    data[name] = int(revenue)          # store in the dict</pre><code>data[name] = value</code> adds an entry to a dict on the fly — no need to pre-declare keys. This exact loop is what reading a real CSV file looks like, minus the open() call.`,
    task:`Given <b>raw_csv</b> (a multi-line string, header + 3 rows), skip the header and build a dict <b>data</b> of {name: revenue(int)}. Then compute <b>total</b> = sum of all revenues.`,
    starter:`raw_csv = "name,revenue\\nBurger Hub,12400\\nPasta Bar,8900\\nSushi Go,15100"\ndata = {}\n`,
    hint:"lines = raw_csv.splitlines()[1:] — then for line in lines: name, revenue = line.split(','); data[name] = int(revenue)",
@@ -309,18 +320,17 @@ assert total == 36400`}
  desc:"Classes, methods, inheritance, dunder methods",
  challenges:[
   {title:"The Restaurant class",
-   lesson:`<h3>Classes — blueprints for objects</h3><pre>class Restaurant:
+   lesson:`<h3>Classes — your own data types</h3>You've used built-in types (int, str, list). A class lets you define your OWN type that bundles data and behavior together. Here, every restaurant has a name, a commission rate, a running revenue — and things it can <i>do</i>:<pre>class Restaurant:
     def __init__(self, name, commission=0.18):
         self.name = name
         self.commission = commission
         self.revenue = 0
 
     def add_order(self, amount):
-        self.revenue += amount
-
-r = Restaurant("Burger Hub")
-r.add_order(150)
-print(r.revenue)   # 150</pre><code>__init__</code> runs on creation; <code>self</code> is the object itself.`,
+        self.revenue += amount</pre><h3>The two confusing parts, explained</h3><b>__init__</b> is the setup routine that runs automatically when you create a new object with <code>Restaurant("Sushi Go")</code>. Its job is stashing the starting values.<br><br><b>self</b> means "this particular object". If you create two restaurants, each has its own separate <code>self.revenue</code>. Writing <code>self.name = name</code> means "store the incoming name on THIS object so other methods can use it later." Every method's first parameter is self — Python fills it in automatically when you call <code>r.add_order(150)</code>.<h3>Using it</h3><pre>r = Restaurant("Sushi Go")   # __init__ runs, revenue starts at 0
+r.add_order(200)              # r.revenue is now 200
+r.add_order(350)              # r.revenue is now 550
+r.name                        # "Sushi Go"</pre>Object variables are read with a dot: <code>r.revenue</code>, and methods are called with a dot: <code>r.payout()</code>.`,
    task:`Create class <b>Restaurant</b> with <code>__init__(self, name, commission=0.18)</code> storing name, commission, and <code>revenue=0</code>. Add method <b>add_order(amount)</b> that adds to revenue, and <b>payout()</b> that returns <code>round(revenue * (1 - commission), 2)</code>. Then make <b>r = Restaurant("Sushi Go")</b>, add orders 200 and 350.`,
    starter:`class Restaurant:\n    pass  # replace this\n`,
    hint:"payout: return round(self.revenue * (1 - self.commission), 2)",
@@ -330,12 +340,9 @@ assert r.payout() == 451.0
 r2 = Restaurant("X", 0.25); r2.add_order(100)
 assert r2.payout() == 75.0`},
   {title:"Inheritance: PrimeRestaurant",
-   lesson:`<h3>Inheritance — extend without repeating</h3><pre>class PrimeRestaurant(Restaurant):
-    def __init__(self, name):
-        super().__init__(name, commission=0.12)
-
-    def payout(self):
-        return super().payout() + 50  # bonus</pre><code>super()</code> calls the parent's version.`,
+   lesson:`<h3>Inheritance — extend without copy-pasting</h3>A child class gets everything the parent has, then changes only what's different:<pre>class PrimeRestaurant(Restaurant):   # <- inherits from Restaurant</pre>That parenthesis means: PrimeRestaurant automatically has add_order(), payout(), everything — for free. Now customize:<h3>super() — "call the parent's version"</h3><pre>def __init__(self, name):
+    super().__init__(name, commission=0.10)</pre>Instead of re-writing the setup, we delegate to the parent's __init__ but lock in a better commission. <code>super()</code> literally means "my parent class".<h3>Overriding methods</h3>Define a method with the same name as the parent's, and yours wins:<pre>def payout(self):
+    return super().payout() + 100   # parent's math + a bonus</pre>Note it still calls <code>super().payout()</code> to reuse the parent's calculation, then adds on top. That's the idiom: don't duplicate the parent's logic, build on it.<h3>Why this matters in real code</h3>Think Vehicle → Car → ElectricCar, or Employee → Manager. Shared logic lives once in the parent; each child adds only its differences. Change the parent, all children update.`,
    task:`Given the <b>Restaurant</b> class (already defined for you), create <b>PrimeRestaurant(Restaurant)</b> whose <code>__init__(self, name)</code> uses commission 0.10 via <code>super()</code>. Override <b>payout()</b> to add a 100 loyalty bonus to the parent payout. Create <b>p = PrimeRestaurant("Pasta Bar")</b> and add an order of 1000.`,
    starter:`class Restaurant:\n    def __init__(self, name, commission=0.18):\n        self.name = name\n        self.commission = commission\n        self.revenue = 0\n    def add_order(self, amount):\n        self.revenue += amount\n    def payout(self):\n        return round(self.revenue * (1 - self.commission), 2)\n\n# your PrimeRestaurant below\n`,
    hint:"def __init__(self, name): super().__init__(name, commission=0.10) — and payout: return super().payout() + 100",
@@ -343,11 +350,19 @@ assert r2.payout() == 75.0`},
 assert p.revenue == 1000
 assert p.payout() == 1000.0, f"900 parent payout + 100 bonus, got {p.payout()}"`},
   {title:"Dunder methods",
-   lesson:`<h3>Magic methods make objects feel native</h3><pre>class Basket:
-    def __init__(self): self.items = []
-    def __len__(self): return len(self.items)
-    def __str__(self): return f"Basket({len(self)} items)"
-    def __add__(self, other): ...</pre>Now <code>len(basket)</code> and <code>print(basket)</code> just work.`,
+   lesson:`<h3>Dunder ("double underscore") methods</h3>Ever wondered how <code>len("hello")</code> knows the answer? Every Python type defines special methods like <code>__len__</code> under the hood, and built-in functions call them. Define them on YOUR class, and your objects work with Python's built-ins like natives:<pre>class Order:
+    def __init__(self, items):
+        self.items = items
+
+    def __len__(self):              # powers len(order)
+        return len(self.items)
+
+    def __str__(self):              # powers print(order) & str(order)
+        return f"Order: {len(self.items)} items"</pre>Now <code>len(o)</code> and <code>print(o)</code> Just Work — no <code>o.get_length()</code> clunkiness.<h3>The ones you'll meet constantly</h3><pre>__init__   runs on creation (you know this one)
+__str__    human-readable text version
+__len__    what len() returns
+__eq__     what == compares
+__add__    what + does (yes, you can define + for your types)</pre><h3>Building the string</h3>For this task you'll compute a total inside __str__: <code>sum(self.items)</code> adds up the list, and an f-string weaves it into the text. Careful with the exact format the task asks for — the test checks the string character-for-character.`,
    task:`Create class <b>Order</b> with <code>__init__(self, items)</code> (a list of prices). Implement <b>__len__</b> (number of items), <b>__str__</b> returning <code>"Order: N items, QAR TOTAL"</code> (e.g. "Order: 3 items, QAR 260"), where TOTAL is <code>sum(items)</code>. Create <b>o = Order([100, 60, 100])</b>.`,
    starter:``,
    hint:'def __str__(self): return f"Order: {len(self.items)} items, QAR {sum(self.items)}"',
@@ -360,9 +375,9 @@ assert str(o) == "Order: 3 items, QAR 260", f"got {str(o)}"`}
  desc:"collections, datetime, JSON, generators, decorators",
  challenges:[
   {title:"Build your own Counter",
-   lesson:`<h3>The counting pattern</h3>Counting occurrences is one of the most common data tasks there is. The pattern behind tools like <code>collections.Counter</code> is simple and worth knowing cold:<pre>counts = {}
-for item in cuisines:
-    counts[item] = counts.get(item, 0) + 1</pre>Once you have counts, finding the winner is just <code>max(counts, key=counts.get)</code>.`,
+   lesson:`<h3>The counting pattern — memorize this one</h3>"How many times does each thing appear?" is one of the most common questions in all of data work. The answer is always a dict where keys are the things and values are their counts:<pre>counts = {}
+for item in orders:
+    counts[item] = counts.get(item, 0) + 1</pre><h3>The magic line, dissected</h3><code>counts.get(item, 0)</code> means "look up item's current count, but if it's not in the dict yet, use 0." Then <code>+ 1</code> bumps it, and <code>counts[item] =</code> stores it back. So:<br>• First time we see "burger": get() returns 0 → store 1<br>• Second time: get() returns 1 → store 2<br>...and so on. Without the <code>.get(item, 0)</code> safety, <code>counts[item] + 1</code> would crash with a KeyError the first time it meets each new item.<h3>Finding the winner</h3>Same trick as the Top Seller challenge: <code>max(counts, key=counts.get)</code> returns the KEY with the biggest count. Then <code>counts[that_key]</code> looks up the count itself.<br><br>Fun fact: Python ships this as <code>collections.Counter</code>, but every senior engineer can write this loop from memory — and interviewers ask for exactly that.`,
    task:`Given <b>orders</b> (list of cuisine strings), build a dict <b>counts</b> of {cuisine: how many times it appears}. Then find <b>top_cuisine</b> (name with the highest count) and <b>top_count</b> (that count).`,
    starter:`orders = ["burger","sushi","burger","pasta","burger","sushi","burger","pasta","burger"]\ncounts = {}\n`,
    hint:"for o in orders: counts[o] = counts.get(o, 0) + 1 — then top_cuisine = max(counts, key=counts.get); top_count = counts[top_cuisine]",
@@ -370,8 +385,12 @@ for item in cuisines:
 assert top_cuisine == "burger"
 assert top_count == 5`},
   {title:"Parsing structured records",
-   lesson:`<h3>Nested data</h3>Real business data often nests dicts inside dicts, or holds mixed types. You already have every tool you need — just index carefully.<pre>record = {"city": "Doha", "metrics": {"orders": 1250, "revenue": 48750.5}}
-record["metrics"]["orders"]     # 1250</pre><h3>Building your own summary strings</h3>Turning a date and a count of days into a readable label is a common reporting task — you can do it with plain arithmetic on a day count without needing a special date library.`,
+   lesson:`<h3>Nested data — dicts inside dicts</h3>Real records are rarely flat. An API response or a database row usually looks like this:<pre>record = {
+    "city": "Doha",
+    "metrics": {"orders": 1250, "revenue": 48750.5}
+}</pre>The value of "metrics" is itself a whole dict. To reach inside, chain the lookups left to right:<pre>record["city"]                # "Doha"
+record["metrics"]             # the inner dict
+record["metrics"]["orders"]   # 1250</pre>Read <code>record["metrics"]["orders"]</code> as: open record, grab metrics, then inside THAT, grab orders. You can nest as deep as needed — JSON data from real APIs often goes 4-5 levels.<h3>Day-of-year arithmetic</h3>Dates are ultimately just counting: July 10 is day 191 of 2026, so "3 weeks later" is simply <code>191 + 21 = 212</code>. Real code uses the datetime library for calendar-aware math, but the mental model — dates as numbers you can add to — is exactly this.<h3>Common mistake</h3>Trying <code>record["orders"]</code> directly → KeyError, because "orders" isn't a top-level key. When a lookup fails, print the dict and check which level the key actually lives on.`,
    task:`Given the nested dict <b>record</b>, extract <b>city</b> = record["city"], and <b>orders</b> = record["metrics"]["orders"]. Then, given <b>day_of_year = 191</b> (day 191 of 2026, i.e. July 10) and <b>days_ahead = 21</b>, compute <b>report_day</b> = day_of_year + days_ahead (the day-of-year the report covers).`,
    starter:`record = {"city": "Doha", "metrics": {"orders": 1250, "revenue": 48750.5}}\nday_of_year = 191\ndays_ahead = 21\n`,
    hint:"city = record['city']; orders = record['metrics']['orders']; report_day = day_of_year + days_ahead",
@@ -379,12 +398,15 @@ record["metrics"]["orders"]     # 1250</pre><h3>Building your own summary string
 assert orders == 1250
 assert report_day == 212`},
   {title:"Generators & decorators",
-   lesson:`<h3>Generators — memory-efficient loops</h3><pre>def daily_revenue(start, growth):
-    r = start
-    while True:
-        yield r
-        r = round(r * growth, 2)</pre><code>yield</code> pauses and resumes — handles infinite/huge data without loading it all.<h3>Decorators (recognize them)</h3><pre>@lru_cache
-def slow_calc(x): ...</pre>A decorator wraps a function to add behavior.`,
+   lesson:`<h3>Generators — lazy sequences</h3>A normal function computes everything and returns once. A generator uses <code>yield</code> instead of return — it hands out ONE value, then <b>freezes in place</b>, remembering exactly where it was. Ask again, it resumes from that spot:<pre>def compound(start, rate):
+    v = start
+    while True:            # infinite! and that's fine
+        yield round(v, 2)  # hand out a value, then PAUSE here
+        v = v * rate       # resumes here on the next request</pre><h3>Pulling values out</h3><pre>g = compound(1000, 1.1)   # creates the generator (nothing runs yet!)
+next(g)    # 1000     — runs until the first yield
+next(g)    # 1100.0   — resumes, loops once, yields again
+next(g)    # 1210.0</pre>An infinite while True would hang a normal function forever — a generator is fine because it only computes when asked. That's how Python processes gigantic files without loading them into memory.<h3>Collecting the first N</h3><pre>g = compound(1000, 1.1)
+first5 = [next(g) for _ in range(5)]</pre>The <code>_</code> is a convention meaning "loop variable I don't actually use."<h3>Decorators — recognize the @</h3>A line like <code>@lru_cache</code> above a def wraps that function with extra behavior (caching, logging, timing). You'll mostly USE them rather than write them — just know the @ syntax when you see it.`,
    task:`Write a generator <b>compound(start, rate)</b> that yields start, then start*rate, then that*rate... forever (round each to 2 decimals). Use it to build <b>first5</b> = list of the first 5 values for compound(1000, 1.1). Hint: <code>g = compound(1000, 1.1)</code> then <code>[next(g) for _ in range(5)]</code>.`,
    starter:``,
    hint:"def compound(start, rate):\n    v = start\n    while True:\n        yield round(v, 2)\n        v = v * rate",
@@ -398,7 +420,12 @@ assert next(_g2) == 5 and next(_g2) == 10, "compound must be a generator using y
  desc:"Build the full analytics engine — everything combined",
  challenges:[
   {title:"The analytics core",
-   lesson:`<h3>🏆 Capstone, part 1</h3>You'll now build <b>QMartAnalytics</b> — a real analytics engine combining OOP, dicts, comprehensions, and error handling. This is portfolio-worthy: the exact shape of tools used at real q-commerce companies.`,
+   lesson:`<h3>🏆 Capstone, part 1 — combining everything</h3>You're now building <b>QMartAnalytics</b> — a real analytics engine class. Nothing here is new; it's the class syntax from Level 6, the dict-building from Level 3, and the safe-division thinking from Level 5, assembled into one tool. This is genuinely the shape of internal tools at q-commerce companies.<h3>Plan before you code</h3>The engine needs: a list to collect orders (each a <code>(restaurant, amount)</code> tuple), a method to add one, a method to group revenue by restaurant, and a method for AOV.<h3>Grouping — the accumulate-into-a-dict pattern</h3><pre>def revenue_by_restaurant(self):
+    d = {}
+    for r, amt in self.orders:      # unpack each tuple
+        d[r] = d.get(r, 0) + amt    # same pattern as Counter!
+    return d</pre>Notice <code>for r, amt in self.orders</code> unpacks each tuple into two variables directly.<h3>Guarding the average</h3>An empty engine has zero orders — dividing by <code>len(self.orders)</code> would crash. Guard it first:<pre>if not self.orders:
+    return 0</pre><code>not self.orders</code> is True when the list is empty — Python treats empty lists as "falsy". This early-return-guard is how pros write it.`,
    task:`Create class <b>QMartAnalytics</b>: <code>__init__</code> stores <code>self.orders = []</code>. Method <b>add(restaurant, amount)</b> appends the tuple. Method <b>revenue_by_restaurant()</b> returns a dict {restaurant: total}. Method <b>aov()</b> returns round(total revenue / number of orders, 2), or 0 if no orders. Then create <b>engine</b>, add: ("Sushi Go",200), ("Burger Hub",150), ("Sushi Go",300).`,
    starter:`class QMartAnalytics:\n    def __init__(self):\n        self.orders = []\n`,
    hint:"revenue_by_restaurant: loop orders, use a dict with d[r] = d.get(r, 0) + amt. aov: use try/except ZeroDivisionError or check len first.",
@@ -407,7 +434,10 @@ assert engine.aov() == 216.67
 e2 = QMartAnalytics()
 assert e2.aov() == 0, "empty engine should return 0"`},
   {title:"Insights & rankings",
-   lesson:`<h3>🏆 Capstone, part 2</h3>Executives don't want raw data — they want <b>insights</b>. Add reporting methods to your engine.`,
+   lesson:`<h3>🏆 Capstone, part 2 — from data to insights</h3>Executives don't read raw dicts. They ask "who are my top 3?" and "give me one line summarizing the business." You'll add both to the engine.<h3>top_n — sorting a dict by value</h3>You built revenue_by_restaurant() already, so reuse it (methods can call other methods via self):<pre>def top_n(self, n):
+    ranked = sorted(self.revenue_by_restaurant().items(),
+                    key=lambda x: x[1], reverse=True)
+    return ranked[:n]</pre>Piece by piece: <code>.items()</code> turns the dict into (name, revenue) pairs → <code>key=lambda x: x[1]</code> sorts by the revenue part → <code>reverse=True</code> puts biggest first → <code>[:n]</code> slices off just the top n.<h3>report() — one formatted line</h3>An f-string can call methods and compute inline:<pre>return f"QMart: {len(self.orders)} orders, QAR {total}, AOV {self.aov()}"</pre>Compute <code>total</code> on the line above with a generator expression: <code>sum(a for _, a in self.orders)</code> — "sum the amount from every (restaurant, amount) pair, ignoring the name" (that's what the _ signals).<h3>Precision warning</h3>The test compares your report string exactly — spacing, commas, capitalization. If it fails, print yours and compare character by character.`,
    task:`Extend the engine (redefine the full class): add <b>top_n(n)</b> returning a list of the top n (restaurant, revenue) tuples sorted by revenue descending, and <b>report()</b> returning the string <code>"QMart: X orders, QAR TOTAL revenue, AOV Y"</code> (e.g. "QMart: 3 orders, QAR 650, AOV 216.67"). Same test data as before: engine with ("Sushi Go",200), ("Burger Hub",150), ("Sushi Go",300).`,
    starter:`class QMartAnalytics:\n    def __init__(self):\n        self.orders = []\n    def add(self, restaurant, amount):\n        self.orders.append((restaurant, amount))\n    def revenue_by_restaurant(self):\n        d = {}\n        for r, a in self.orders:\n            d[r] = d.get(r, 0) + a\n        return d\n    def aov(self):\n        if not self.orders: return 0\n        return round(sum(a for _, a in self.orders) / len(self.orders), 2)\n    # add top_n and report here\n`,
    hint:'top_n: sorted(self.revenue_by_restaurant().items(), key=lambda x: x[1], reverse=True)[:n]. report: f"QMart: {len(self.orders)} orders, QAR {sum(...)}, AOV {self.aov()}"',
@@ -415,7 +445,14 @@ assert e2.aov() == 0, "empty engine should return 0"`},
 assert engine.top_n(2) == [("Sushi Go", 500), ("Burger Hub", 150)]
 assert engine.report() == "QMart: 3 orders, QAR 650, AOV 216.67", f"got {engine.report()}"`},
   {title:"Final boss: full pipeline",
-   lesson:`<h3>🏆 Final challenge</h3>A raw messy data feed comes in. Clean it, load it, analyze it — a complete end-to-end pipeline, exactly what a data engineer does daily. Pass this and you've earned <b>Python Expert</b>.`,
+   lesson:`<h3>🏆 The final challenge — a complete pipeline</h3>This is the job, in miniature: messy data arrives → clean it → skip the corrupt rows without crashing → load into your engine → produce an executive summary. Every technique from all 8 levels, in one flow.<h3>The pipeline pattern</h3><pre>for row in raw_feed:
+    parts = row.split("|")               # 1. chop the raw line
+    name = parts[0].strip().title()      # 2. clean the text
+    try:
+        amt = int(parts[1].strip())      # 3. convert — MIGHT FAIL
+        engine.add(name, amt)            # 4. only runs if it didn't
+    except ValueError:
+        skipped += 1                     # 5. count the bad row, move on</pre><h3>Why the try wraps BOTH lines</h3>Look at steps 3-4: <code>engine.add()</code> is inside the try, after the risky int(). If the conversion blows up, Python jumps straight to except — so the corrupt row never gets added. If add() were outside the try, you'd need extra logic. Placement of lines inside try blocks is a real design decision, and this arrangement — risky step plus its dependents together — is the clean one.<h3>Why ValueError?</h3><code>int(" oops ")</code> raises specifically ValueError ("right type of argument, unacceptable value"). Catching exactly that means a genuinely unexpected bug would still surface loudly instead of being silently counted as a bad row.<br><br>Ship this and you've earned the title. 🏆`,
    task:`You get <b>raw_feed</b>: a list of messy strings like <code>" sushi go | 200 "</code>. Some are corrupt (amount isn't a number) — skip those with try/except. Parse each into (name in title case, int amount), load into a QMartAnalytics <b>engine</b> (class provided), and compute <b>summary = engine.report()</b> and <b>skipped</b> = count of corrupt rows.`,
    starter:`class QMartAnalytics:\n    def __init__(self):\n        self.orders = []\n    def add(self, restaurant, amount):\n        self.orders.append((restaurant, amount))\n    def aov(self):\n        if not self.orders: return 0\n        return round(sum(a for _, a in self.orders) / len(self.orders), 2)\n    def report(self):\n        total = sum(a for _, a in self.orders)\n        return f"QMart: {len(self.orders)} orders, QAR {total}, AOV {self.aov()}"\n\nraw_feed = [" sushi go | 200 ", "burger hub|150", " sushi go | oops ", "PASTA BAR | 300", "shawarma king | ??? "]\n\nengine = QMartAnalytics()\nskipped = 0\n`,
    hint:"for row in raw_feed: parts = row.split('|'); name = parts[0].strip().title(); try: amt = int(parts[1].strip()); engine.add(name, amt) / except ValueError: skipped += 1",
@@ -549,7 +586,9 @@ function render(){
           <div><b>${l.name}</b><small>${l.desc}</small></div>
         </div>`;
       }).join('')}
-      <button class="hintbtn" id="resetBtn" style="margin-top:14px;width:100%;font-size:12px">Reset all progress</button>
+      <button class="hintbtn" id="exportBtn" style="margin-top:14px;width:100%;font-size:12px">📤 Copy progress code</button>
+      <button class="hintbtn" id="importBtn" style="margin-top:6px;width:100%;font-size:12px">📥 Paste progress code</button>
+      <button class="hintbtn" id="resetBtn" style="margin-top:6px;width:100%;font-size:12px">Reset all progress</button>
     </aside>
     <main class="main">
       <div class="topbar">
@@ -610,7 +649,7 @@ function render(){
     const code = document.getElementById('editor').value;
     setConsole('<span class="sys">Running…</span>');
     const r = await runPython(code, null, ch.setup);
-    setConsole((r.stdout?`<span class="out">${escapeHtml(r.stdout)}</span>`:'')+(r.error?`\n<span class="err">${escapeHtml(r.error)}</span>`:(r.stdout?'':'<span class="sys">(no output — add a print() to see values)</span>')));
+    setConsole((r.stdout?`<span class="out">${escapeHtml(r.stdout)}</span>`:'')+(r.error?`\n<span class="err">${escapeHtml(r.error)}</span>${(()=>{const ex=translateError(r.error); return ex ? `\n<span class="sys">💡 ${escapeHtml(ex)}</span>` : '';})()}`:(r.stdout?'':'<span class="sys">(no output — add a print() to see values)</span>')));
   };
   document.getElementById('submitBtn').onclick = async ()=>{
     const code = document.getElementById('editor').value;
@@ -627,7 +666,8 @@ function render(){
       }
       consoleOut = msg; render();
     } else {
-      setConsole((r.stdout?`<span class="out">${escapeHtml(r.stdout)}</span>\n`:'')+`<span class="err">✗ ${escapeHtml(r.error)}</span>\n<span class="sys">Fix it and submit again — or grab a hint.</span>`);
+      const explanation = translateError(r.error);
+      setConsole((r.stdout?`<span class="out">${escapeHtml(r.stdout)}</span>\n`:'')+`<span class="err">✗ ${escapeHtml(r.error)}</span>`+(explanation?`\n<span class="sys">💡 ${escapeHtml(explanation)}</span>`:'')+`\n<span class="sys">Fix it and submit again — or grab a hint.</span>`);
     }
   };
   document.getElementById('hintBtn').onclick = ()=>{
@@ -641,6 +681,30 @@ function render(){
     if(ci < lvl.challenges.length-1){ state.challenge++; }
     else if(li < LEVELS.length-1 && isLevelUnlocked(li+1)){ state.level++; state.challenge=0; }
     saveState(); render(); window.scrollTo(0,0);
+  };
+  document.getElementById('exportBtn').onclick = async ()=>{
+    const code = btoa(JSON.stringify(state));
+    try{
+      await navigator.clipboard.writeText(code);
+      flash('Progress code copied! Open PyQuest on your other device, tap "Paste progress code", and paste it there.');
+    }catch(e){
+      // clipboard may be blocked — show the code for manual copy
+      setConsole('<span class="sys">Copy this code manually:</span>\n<span class="out">'+escapeHtml(code)+'</span>');
+    }
+  };
+  document.getElementById('importBtn').onclick = async ()=>{
+    const code = prompt('Paste your progress code from the other device:');
+    if(!code) return;
+    try{
+      const incoming = JSON.parse(atob(code.trim()));
+      if(typeof incoming.xp !== 'number' || typeof incoming.done !== 'object') throw new Error('bad');
+      state = {...state, ...incoming};
+      await saveState();
+      render();
+      flash('Progress imported! XP: '+state.xp);
+    }catch(e){
+      flash('That code doesn\'t look right — make sure you copied the whole thing.');
+    }
   };
   document.getElementById('resetBtn').onclick = async ()=>{
     if(confirm('Reset all progress and XP?')){ state={level:0,challenge:0,xp:0,done:{},hintsUsed:{}}; codeCache={}; consoleOut=""; await saveState(); render(); }
