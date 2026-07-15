@@ -585,6 +585,16 @@ async function runPython(code, tests, setup){
         msg = String(e);
       }
     }catch(_){ msg = String(e); }
+    // Fix line numbers: our hidden output-capture header is prepended to the user's
+    // code, so Skulpt reports lines offset by its length. Subtract to match the editor gutter.
+    const HEADER_LINES = CAPTURE_HEADER.split('\n').length - 1;
+    const userLines = code.split('\n').length;
+    msg = msg.replace(/on line (\d+)/g, (m, n) => {
+      const adjusted = parseInt(n, 10) - HEADER_LINES;
+      if(adjusted < 1) return 'in the setup code';
+      if(adjusted > userLines) return 'in the hidden test code (your code ran fine — the checked values were wrong)';
+      return 'on line ' + adjusted;
+    });
     return {ok:false, stdout, error:msg};
   }
 }
